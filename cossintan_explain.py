@@ -1,3 +1,4 @@
+import pygame
 import os
 from time import time, sleep
 import time
@@ -119,10 +120,8 @@ while running:
     
     
     #cossintan explenation
-    circle_diameter = simFieldY1 + simFieldY2 / simfieldsizex
-    pixel_to_radian = simFieldY1 + simFieldY2 / simfieldsizex - 2
-    circle_center = ((simFieldX1 + simFieldX2) / 2, (simFieldY1 + simFieldY2) / 2)
-
+    circle_diameter = 1
+    circle_center = (simfieldsizex / 2, simfieldsizey / 2)
 
     currentCircleDegree = currentCircleDegree % 360
     currentCircleRadian = (currentCircleDegree) * (pi/180) 
@@ -139,10 +138,6 @@ while running:
     # sqrt((triangle * y)**2 + x**2)
     #onCirclePointY = sqrt(1 / (triangleTan**-2 + 1))
     
-    circleTrianglePoint = (circle_center[0] + pixel_to_radian * triangleCos, circle_center[1] - pixel_to_radian * triangleSin)    
-    
-    circlePoint = (circle_center[0] + circle_diameter / 2, )
-
     #clear screen
     screen.fill((0, 0, 0))    
     
@@ -168,56 +163,47 @@ while running:
     underMenuY2 = screen.get_height() - 10
 
     #draw the menu's
-    create_rectangle((simFieldX1, simFieldY1),(simFieldX2, simFieldY2))
+    create_rectangle((simFieldX1, simFieldY1),(simFieldX2, simFieldY2), color=(30, 30, 70))
     create_menu((rightMenuX1, rightMenuY1), (rightMenuX2, rightMenuY2), divisions=[1], names=['Data'], isVertical=True, settings=object_settings)
     
     #grafiek
-    create_line(((simFieldX1 + simFieldX2) / 2, simFieldY1), ((simFieldX1 + simFieldX2) / 2, simFieldY2), width=3)
-    create_line((simFieldX1,(simFieldY1 + simFieldY2) / 2) , (simFieldX2, (simFieldY1 + simFieldY2) / 2), width=3)
+    create_line(calc_game_to_pixel_coords((simfieldsizex / 2, 0)), calc_game_to_pixel_coords((simfieldsizex / 2, simfieldsizey)), width=3)
+    create_line(calc_game_to_pixel_coords((0, simfieldsizey / 2)) , calc_game_to_pixel_coords((simfieldsizex, simfieldsizey / 2)), width=3)
     
     #draw circle stuff 
-    create_circle(center = circle_center, radius = circle_diameter, width = 3)
+    circle_center = calc_game_to_pixel_coords((simfieldsizex / 2, simfieldsizey / 2))
+
+    create_circle(center = circle_center, radius = min(calc_game_to_pixel_coords(circle_diameter), calc_game_to_pixel_coords(y=circle_diameter)), width = 3)
     
     #draw_explain_data
     #draw triangle in circle
-    for precision in range(circle_precision, 1, -1):
+    for precision in range(circle_precision, 1, -1):        
+        circleTrianglePoint = calc_game_to_pixel_coords(((simfieldsizex / 2 + calc_cos(currentCircleRadian, precision) * circle_diameter), (simfieldsizey / 2 + calc_sin(currentCircleRadian, precision) * circle_diameter)))
 
-        triangleTan = calc_tan(currentCircleRadian, precision)
-        triangleSin = calc_sin(currentCircleRadian, precision)
-        triangleCos = calc_cos(currentCircleRadian, precision)
-        
-        circleTrianglePoint = (circle_center[0] + pixel_to_radian * triangleCos, circle_center[1] - pixel_to_radian * triangleSin)    
-    
+
         create_line((circleTrianglePoint[0], circle_center[1]), circleTrianglePoint, color = (0, 0, 255 * (precision / circle_precision)))
         create_line(circle_center, (circleTrianglePoint[0], circle_center[1]), color = (0, 255 * (precision / circle_precision), 0))
         if precision == circle_precision:
             create_line(circle_center, circleTrianglePoint, color = (255 * (precision / circle_precision), 0, 0))
-        create_text(precision, circleTrianglePoint, color = green)
+        create_text(precision, (circleTrianglePoint[0], circleTrianglePoint[1]+ 15), color = green)
         
-        graphPoints[precision - 1][str(currentCircleDegree)] = circleTrianglePoint
+        graphPoints[precision - 1][str(currentCircleDegree)] = (calc_pixel_to_game_coords(circleTrianglePoint))
         
         currentGraph = list(graphPoints[precision - 1].values())
         
         for pointIndex in range(359):
             if currentGraph[pointIndex] != None:
                 if currentGraph[pointIndex + 1] != None:
-                    create_line(currentGraph[pointIndex], currentGraph[pointIndex + 1], color=(150 * (precision / circle_precision), 150 * (precision / circle_precision), 150 * (precision / circle_precision)))
+                    create_line(calc_game_to_pixel_coords(currentGraph[pointIndex]), calc_game_to_pixel_coords(currentGraph[pointIndex + 1]), color=(255 * ((precision - 1) / circle_precision),255 * ((precision - 1) / circle_precision),255 * ((precision - 1) / circle_precision)))
         
-        
-
-    triangleTan = calc_tan(currentCircleRadian, circle_precision)
-    triangleSin = calc_sin(currentCircleRadian, circle_precision)
-    triangleCos = calc_cos(currentCircleRadian, circle_precision)
-
-    circleTrianglePoint = (circle_center[0] + pixel_to_radian * triangleCos, circle_center[1] - pixel_to_radian * triangleSin)    
-    
+    circleTrianglePoint = calc_game_to_pixel_coords(((simfieldsizex / 2 + calc_cos(currentCircleRadian, circle_precision) * circle_diameter), (simfieldsizey / 2 + calc_sin(currentCircleRadian, circle_precision) * circle_diameter)))
     
     create_point(circleTrianglePoint, 4, 4, color=green)
 
     #draw triangle data
     create_text('A', circle_center, color = liteblue)    
     create_text('B', (circleTrianglePoint[0], circle_center[1]), color = red)
-    create_text('C', circleTrianglePoint, color = green)
+    create_text('C', (circleTrianglePoint[0], circleTrianglePoint[1]+ 15), color = green)
 
     #update menus
     pygame.display.flip()
