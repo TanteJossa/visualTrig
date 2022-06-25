@@ -1,8 +1,3 @@
-from turtle import color, right
-from numpy import deg2rad
-import pygame
-
-import matplotlib as plt
 import os
 from time import time, sleep
 import time
